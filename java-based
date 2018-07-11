@@ -1,0 +1,798 @@
+一、 Java中冒号(:)的用法
+1.遍历
+ String[] abc = new String[3]{"a","b","c"};
+    for （String str : abc）｛
+       System.out.println(str);    //这个地方的冒号就是遍历abc的集合，取出每一个元素
+        ｝
+2. 三元运算符boolean?true的内容:false的内容
+int a=1;
+int b=3;
+int i = a>b?3:1;//这个地方的冒号用来选择值，如果a大于b，那么i=3，否则i=1
+3. 跳转标记
+outer:for(int i=0;i<5;i++){
+             for(int i=0;i<5;i++){
+                 if(i==3){
+                     continue outer;
+                 }
+             }
+         }
+//这个地方就是跳转标识,可用来标记地方 里层循环 continue直接跳出外层循环，继续执行外层循环
+4. switch选择
+switch(i){
+case 1:oprate....；break；
+case 2:oprate....；break；
+case 3:oprate....；break；
+//用于switch选择，当i等于下面的值时，执行后面的操作，然后break跳出，如果没有break，那么将执行下面的oprate操作，一直到底！
+default：break；
+}
+
+二、栈
+1.栈的实现
+栈（Stack）是限制仅在表的一端进行插入和删除运算的线性表。java没有栈这样的数据结构，如果想利用先进后出（FILO）这样的数据结构，就必须自己实现。要实现Stack，至少应该包括：
+•	pop() 出栈操作，弹出栈顶元素。
+•	push(E e) 入栈操作
+•	peek() 查看栈顶元素
+•	isEmpty()栈为空
+另外，实现一个栈，还应该考虑到几个问题：
+•	栈的初始大小以及栈满以后如何新增栈空间
+•	对栈进行更新时需要进行同步
+有三种实现：
+实现一：数组实现
+package cn.list;
+import java.util.EmptyStackException;
+
+public class MyArrayStack {
+    private int[] array;// 用数组实现
+    private int top; // 栈顶指针
+    private final static int size = 100;
+
+    public MyArrayStack() {
+        array = new int[size];
+        top = -1; // 栈空的时候
+    }
+
+    // 压栈
+    public void push(int element) {
+        if (top == size - 1) {
+            resize();//这里进行扩容
+        } else
+            array[++top] = element;
+    }
+
+    // 弹栈
+    public int pop() {
+        if (top == -1) {
+            throw new EmptyStackException();
+        }
+        return array[top--];
+    }
+
+    // 判断是否为空
+    public boolean isEmpty() {
+        return top == -1;
+    }
+
+    // 返回栈顶元素
+    public Integer peek() {
+        if (top == -1) {
+            throw new EmptyStackException();
+        }
+        return array[top];
+    }
+    //返回栈中元素个数
+    public int size(){
+        return top + 1 ;
+    }
+    private void resize(){
+        assert size == array.length;//表示当条件成立时程序立即中止并返回一个错误消息
+        int[] newArr = new int[size * 2 + 1];
+        System.arraycopy(array, 0, newArr, 0, size);
+        array = newArr;
+    }
+}
+实现二：容器实现
+package cn.list;
+import java.util.ArrayList;
+import java.util.EmptyStackException;
+import java.util.List;
+
+public class MyArrayListStack<T> implements Stack<T> {
+    private List<T> list; // 用容器实现
+
+    MyArrayListStack() {
+        list = new ArrayList<T>();
+    }
+
+    // 弹栈
+    public T pop() {
+        if (this.isEmpty() == true) {
+            throw new EmptyStackException();
+        }
+        return list.remove(list.size() - 1);
+    }
+
+    // 压栈
+    public void push(T element) {
+        list.add(element);
+    }
+
+    // 判断是否为空
+    public boolean isEmpty() {
+        return list.size() == 0;
+    }
+
+    // 返回栈顶元素
+    public T peek() {
+        if (this.isEmpty() == true) {
+            throw new EmptyStackException();
+        }
+        return list.get(list.size() - 1);
+    }
+    public int size(){
+        return list.size();
+    }
+}
+
+interface Stack<T> {
+    public T pop();
+
+    public void push(T element);
+
+    public boolean isEmpty();
+
+    public T peek();
+    public int size();
+}
+实现三：链表实现
+package cn.list;
+import java.util.LinkedList;
+
+//自己实现栈，使用LinkedList实现
+public class MyLinkedListStack<T> {
+    private LinkedList<T> list = new LinkedList<T>();
+
+    public MyLinkedListStack() {
+    }
+
+    public void clear() {
+        list.clear();
+    }
+
+    public boolean isEmpty() {
+        return list.isEmpty();
+    }
+
+    public T peek() {
+        if (isEmpty()) {
+            throw new java.util.EmptyStackException();
+        }
+        return list.getLast();
+    }
+
+    public T pop() {
+        if (isEmpty()) {
+            throw new java.util.EmptyStackException();
+        }
+        return list.removeLast();
+    }
+
+    public void push(T element) {
+        list.addLast(element);
+    }
+
+    public int size(){
+        return list.size();
+    }
+}
+2. 栈的应用
+2.1 平衡符号
+问题描述： 在编写代码并且编译时，难免会因为少写了一个')'和被编译器报错。也就是说，编译器会去匹配括号是否匹配。当你输入了一个'('，很自然编译器回去检查你是否有另一个')'符号与之匹配。如果所有的括号都能够成对出现，那么编译器是能够通过的。否则编译器会报错。例如字符序列“(a+b)”是匹配的， 而字符序列"(a+b]"则不是。
+算法描述如下： 创建一个空栈，读取字符序列直到结尾。如果字符是开放符号'(''[''{'，将其入栈；如果是一个封闭符号')'']''}'，则当栈为空时报错。否则，将栈顶元素弹出。如果弹出的符号不是对应的开放符号，则报错。当字符序列结束，判断栈是否为空，为空则报错
+package cn.list;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.Stack;
+
+//栈的应用：平衡符号
+public class BalanceSigned {
+
+    public static boolean isBalanceChar() {
+        Stack<Character> stack = new Stack<Character>();
+        String path = "D:/a.txt";
+        File file = new File(path);
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                for (int i = 0; i < line.length(); i++) {
+                    switch (line.charAt(i)) {
+                    case '[':
+                        stack.push('[');
+                        break;
+                    case '(':
+                        stack.push('(');
+                        break;
+                    case '{':
+                        stack.push('{');
+                        break;
+                    case '/':
+                        if (i < line.length() - 1 && line.charAt(i + 1) == '*') {
+                            stack.push('/');
+                            stack.push('*');
+                        }
+                        break;
+                    case ']':
+                        if (stack.size() == 0 || stack.pop() != '[') {
+                            System.out.print("illigal character" + "[]");
+                            return false;
+                        }
+                        break;
+                    case ')':
+                        if (stack.size() == 0 || stack.pop() != '(') {
+                            System.out.print("illigal character" + "()");
+                            return false;
+                        }
+                        break;
+                    case '}':
+                        if (stack.size() == 0 || stack.pop() != '{') {
+                            System.out.print("illigal character" + "{}");
+                            return false;
+                        }
+                        break;
+                    case '*':
+                        if ((i < line.length() - 1 && line.charAt(i + 1) == '/')
+                                && (stack.size() < 2 || (stack.pop() != '*' || stack
+                                        .pop() != '/'))) {
+                            System.out.print("illigal character" + "");
+                            return false;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+            if (stack.size() != 0) {
+                System.out.print("error");
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        boolean flag = isBalanceChar();
+        if (flag) {
+            System.out.println("是平衡符号");
+        } else {
+            System.out.println("不是平衡符号");
+        }
+    }
+}
+
+2.2 中缀表达式转后缀表达式
+package cn.list;
+/**
+ * 工具类：
+ * 1、中缀表达式转化为后缀表达式
+ * 2、给出一个算术表达式（中缀表达式），直接得到计算结果
+ */
+import java.util.Stack;
+import java.util.regex.Pattern;
+
+//中缀表达式到后缀表达式的转换
+public class Infix2Suffix {
+    
+    private Infix2Suffix() {}
+
+    // 方法：给出一个算术表达式（中缀表达式），得到计算结果。 例如 (5+8+10)*1，返回23
+    public static double stringToArithmetic(String string) {
+        return suffixToArithmetic(infixToSuffix(string));
+    }
+
+    /**
+     * 中缀表达式转后缀表达式 只处理了+,-,*,/和括号，没有处理负号及其它运算符，也没对前缀表达式验证。*/
+    // 方法：中缀表达式转成后缀表达式
+    public static String infixToSuffix(String infix) {
+        Stack<Character> stack = new Stack<Character>();
+        String suffix = "";
+        int length = infix.length();
+        for (int i = 0; i < length; i++) {
+            Character temp;
+            char c = infix.charAt(i);
+            switch (c) {
+            // 忽略空格
+            case ' ':
+                break;
+            // 碰到'('，push到栈
+            case '(':
+                stack.push(c);
+                break;
+            // 碰到'+''-'，将栈中所有运算符弹出，送到输出队列中
+            case '+':
+            case '-':
+                while (stack.size() != 0) {
+                    temp = stack.pop();
+                    if (temp == '(') {
+                        stack.push('(');
+                        break;
+                    }
+                    suffix += " " + temp;
+                }
+                stack.push(c);
+                suffix += " ";
+                break;
+            // 碰到'*''/'，将栈中所有乘除运算符弹出，送到输出队列中
+            case '*':
+            case '/':
+                while (stack.size() != 0) {
+                    temp = stack.pop();
+                    if (temp == '(' || temp == '+' || temp == '-') {
+                        stack.push(temp);
+                        break;
+                    } else {
+                        suffix += " " + temp;
+                    }
+                }
+                stack.push(c);
+                suffix += " ";
+                break;
+            // 碰到右括号，将靠近栈顶的第一个左括号上面的运算符全部依次弹出，送至输出队列后，再丢弃左括号
+            case ')':
+                while (stack.size() != 0) {
+                    temp = stack.pop();
+                    if (temp == '(')
+                        break;
+                    else
+                        suffix += " " + temp;
+                }
+                // suffix += " ";
+                break;
+            // 如果是数字，直接送至输出序列
+            default:
+                suffix += c;
+            }
+        }
+
+        // 如果栈不为空，把剩余的运算符依次弹出，送至输出序列。
+        while (stack.size() != 0) {
+            suffix += " " + stack.pop();
+        }
+        return suffix;
+    }
+
+    // 方法：通过后缀表达式求出算术结果
+    public static double suffixToArithmetic(String postfix) {
+
+        Pattern pattern = Pattern.compile("\\d+||(\\d+\\.\\d+)"); // 使用正则表达式匹配数字
+        String strings[] = postfix.split(" "); // 将字符串转化为字符串数组
+        for (int i = 0; i < strings.length; i++){
+            strings[i].trim(); // 去掉字符串首尾的空格
+        }
+        Stack<Double> stack = new Stack<Double>();
+
+        for (int i = 0; i < strings.length; i++) {
+
+            if (strings[i].equals(""))
+                continue;
+
+            // 如果是数字，则进栈
+            if ((pattern.matcher(strings[i])).matches()) {
+
+                stack.push(Double.parseDouble(strings[i]));
+            } else {
+                // 如果是运算符，弹出运算数，计算结果。
+                double y = stack.pop();
+                double x = stack.pop();
+                stack.push(caculate(x, y, strings[i])); // 将运算结果重新压入栈。
+            }
+        }
+        return stack.pop(); // 弹出栈顶元素就是运算最终结果。
+
+    }
+
+    private static double caculate(double x, double y, String simble) {
+        if (simble.trim().equals("+"))
+            return x + y;
+        if (simble.trim().equals("-"))
+            return x - y;
+        if (simble.trim().equals("*"))
+            return x * y;
+        if (simble.trim().equals("/"))
+            return x / y;
+        return 0;
+    }
+}
+
+三、队列
+队列和栈的实现其实差不多，但是要注意一个问题，队列是从尾部添加（入队），从头部删除（出队），有两种实现方式（数组实现和链表实现），对于数组实现有“假溢出”的问题，即经过一些列的出队和入队，导致队列头尾标记都指向了数组的尾部，此时虽然数组未满，但是却不能再插入数据了，于是我们需要实现循环，即当尾部标记指向数组的尾部且数组未满的情况下，让尾部标记在下一次插入的时候指向数组的头位置。
+
+这里我们给出两种实现方式：
+方式一：数组实现
+package cn.list;
+
+//循环顺序队列，数组实现
+public class MyArrayQueue implements Queue {
+
+    static final int defaultSize = 10; // 默认队列的长度
+    int front; // 队头
+    int rear; // 队尾
+    int count; // 统计元素个数的计数器
+    int maxSize; // 队的最大长度
+    Object[] queue; // 队列
+
+    public MyArrayQueue() {
+        init(defaultSize);
+    }
+
+    public MyArrayQueue(int size) {
+        init(size);
+    }
+
+    public void init(int size) {
+        maxSize = size;
+        front = rear = 0;
+        count = 0;
+        queue = new Object[size];
+    }
+
+    public void append(Object obj) throws Exception {
+        if (count > 0 && front == rear) {
+            throw new Exception("队列已满！");
+        }
+        queue[rear] = obj;
+        //当队列满时让尾部标记重新指向数组开始位置，达到循环的目的
+        rear = (rear + 1) % maxSize;
+        count++;
+    }
+
+    public Object delete() throws Exception {
+        if (isEmpty()) {
+            throw new Exception("队列为空！");
+        }
+        Object obj = queue[front];
+        //开始标记在到达数组最后一个位置时也需要循环
+        front = (front + 1) % maxSize;
+        count--;
+        return obj;
+    }
+    
+    //取得队列头
+    public Object getFront() throws Exception {
+        if (!isEmpty()) {
+            return queue[front];
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isEmpty() {
+        return count == 0;
+    }
+
+}
+
+// 队列接口
+interface Queue {
+
+    // 入队
+    public void append(Object obj) throws Exception;
+
+    // 出队
+    public Object delete() throws Exception;
+
+    // 获得队头元素
+    public Object getFront() throws Exception;
+
+    // 判断对列是否为空
+    public boolean isEmpty();
+}
+方式二：链表实现
+package cn.list;
+
+
+//实现链式队列
+public class MyListQueue implements Queue {
+
+    Node front; //队头
+    Node rear;  //队尾
+    int count; //计数器
+
+    public MyListQueue() {
+        init();
+    }
+
+    public void init() {
+        front = rear = null;
+        count = 0;
+    }
+
+    public void append(Object obj) throws Exception {
+        Node node = new Node(obj, null);
+
+        //如果当前队列不为空。
+        if (rear != null) {
+            rear.next = node; //队尾结点指向新结点
+        }
+        rear = node; //设置队尾结点为新结点
+
+        //说明要插入的结点是队列的第一个结点
+        //此时头尾指向同一个节点
+        if (front == null) {
+            front = node;
+        }
+        count++;
+    }
+
+    public Object delete() throws Exception {
+        if (isEmpty()) {
+            new Exception("队列已空！");
+        }
+        Node node = front;
+        front = front.next;
+        count--;
+        return node.getElement();
+    }
+
+    public Object getFront() throws Exception {
+        if (!isEmpty()) {
+            return front.getElement();
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isEmpty() {
+        return count == 0;
+    }
+}
+
+//结点类
+class Node {
+
+  Object element; //数据域
+  Node next;  //指针域
+
+  //头结点的构造方法
+  public Node(Node nextval) {
+      this.next = nextval;
+  }
+
+  //非头结点的构造方法
+  public Node(Object obj, Node nextval) {
+      this.element = obj;
+      this.next = nextval;
+  }
+
+  //获得当前结点的后继结点
+  public Node getNext() {
+      return this.next;
+  }
+
+  //获得当前的数据域的值
+  public Object getElement() {
+      return this.element;
+  }
+
+  //设置当前结点的指针域
+  public void setNext(Node nextval) {
+      this.next = nextval;
+  }
+
+  //设置当前结点的数据域
+  public void setElement(Object obj) {
+      this.element = obj;
+  }
+
+  public String toString() {
+      return this.element.toString();
+  }
+}
+
+四、栈和队列的应用
+4.1 应用一：判断回文
+队列有一个很常见的应用就是判断字符串是否是回文字符串（从头看和从尾看是一样的，如soros），这可以将此字符串分别加入到栈和队列中，然后分别出栈和出队进行比较，如果都是一样的则表示是回文字符串。
+4.2 栈实现队列
+package cn.list;
+import java.util.Stack;
+//使用两个栈实现一个队列
+//说的通俗一点，现在把数据1、2、3分别入栈一，然后从栈一中出来（3、2、1），放到栈二中，
+//那么，从栈二中出来的数据（1、2、3）就符合队列的规律了，即负负得正。
+
+public class MyStackQueue {
+
+    private Stack<Integer> stack1 = new Stack<Integer>();// 执行入队操作的栈
+    private Stack<Integer> stack2 = new Stack<Integer>();// 执行出队操作的栈
+
+    // 方法：给队列增加一个入队的操作
+    public void push(int data) {
+        stack1.push(data);
+    }
+
+    // 方法：给队列正价一个出队的操作
+    public int pop() throws Exception {
+        // stack1中的数据放到stack2之前，先要保证stack2里面是空的（要么一开始就是空的，
+        //要么是stack2中的数据出完了），不然出队的顺序会乱的，这一点很容易忘
+        if (stack2.empty()) {
+            while (!stack1.empty()) {
+                // 把stack1中的数据出栈，放到stack2中【核心代码】
+                stack2.push(stack1.pop());
+            }
+        }
+        // stack2为空时，有两种可能：1、一开始，两个栈的数据都是空的；2、stack2中的数据出完了
+        if (stack2.empty()) { 
+            throw new Exception("队列为空");
+        }
+        //如果stack2不为空，则直接出栈
+        return stack2.pop();
+    }
+}
+4.3 队列实现栈
+package cn.list;
+import java.util.ArrayDeque;
+import java.util.Queue;
+
+//使用队列实现栈
+public class MyQueueStack {
+
+    Queue<Integer> queue1 = new ArrayDeque<Integer>();
+    Queue<Integer> queue2 = new ArrayDeque<Integer>();
+
+    // 方法：入栈操作
+    public void push(int data) {
+        queue1.add(data);
+    }
+
+    // 方法：出栈操作
+    /*将1、2、3依次入队列一， 然后最上面的3留在队列一，
+     * 将下面的1、2入队列二，将3出队列一，此时队列一空了，然后把队列二中的所有数据入队列一；
+     * 将最上面的2留在队列一，将下面的3入队列二。。。依次循环。
+     * */
+    public int pop() throws Exception {
+        int data;
+        if (queue1.size() == 0) {
+            throw new Exception("栈为空");
+        }
+
+        while (queue1.size() != 0) {
+            if (queue1.size() == 1) {
+                data = queue1.poll();
+                while (queue2.size() != 0) { // 把queue2中的全部数据放到队列一中
+                    queue1.add(queue2.poll());
+                }
+                return data;
+            }
+            queue2.add(queue1.poll());
+        }
+        throw new Exception("栈为空");// 不知道这一行的代码是什么意思
+    }
+}
+4.4 设计含最小函数min()的栈
+（摘自：http://blog.csdn.net/sgbfblog/article/details/7752878）
+要求min、push、pop的时间复杂度都是O(1)
+分析：
+很刚开始很容易想到一个方法，那就是额外建立一个最小堆保存所有元素，这样每次获取最小元素只需要O（1）的时间。但是这样的话，PUSH和POP操作就需要O（lgn）的时间了（假定栈中元素个数为n），不符合题目的要求。可以使用一个辅助栈。
+解法：
+使用一个辅助栈来保存最小元素，这个解法简单不失优雅。设该辅助栈名字为minStack，其栈顶元素为当前栈中的最小元素。这意味着要获取当前栈中最小元素，只需要返回minStack 的栈顶元素即可。每次执行push操作，检查push的元素是否小于或等于minStack栈顶元素。如果是，则也push该元素到minStack 中。当执行pop操作的时候，检查pop的元素是否与当前最小值相等。如果相同，则需要将改元素从minStack中pop出去。
+实例：
+假定有元素3， 2， 5， 4， 2， 1依次入栈，则原始栈中元素为（1）， 辅助栈中元素为（2）
+（1）	（2）
+1	null
+2	null
+4	1
+5	2
+2	2
+3	3
+这样，第1次pop时，1从两个栈都pop出去；第2次pop时，2从两个栈都pop出去；第3次pop，元素4从原始栈pop出去，辅助栈不用pop；第4次pop，元素5从原始栈pop出去，辅助栈不需pop；第5次pop，元素2从两个栈pop出去；第6次pop，元素3从两个栈都pop出去。我们可以发现，每次push或者pop后，辅助栈的栈顶元素总是当前栈的最小元素。
+package cn.list;
+import java.util.Stack;
+
+public class GetMinStack {
+
+    private Stack<Integer> stack = new Stack<Integer>();
+  //辅助栈：栈顶永远保存stack中当前的最小的元素
+    private Stack<Integer> minStack = new Stack<Integer>(); 
+
+
+    public void push(int data) {
+        stack.push(data);  //直接往栈中添加数据
+
+        //在辅助栈中需要做判断
+        if (minStack.size() == 0 || data <= minStack.peek()) {
+            minStack.push(data);
+        } else {
+            minStack.add(minStack.peek());   //【核心代码】peek方法返回的是栈顶的元素
+        }
+    }
+
+    public int pop() throws Exception {
+        if (stack.size() == 0) {
+            throw new Exception("栈中为空");
+        }
+
+        int data = stack.pop();
+        minStack.pop();  //核心代码
+        return data;
+    }
+
+    public int min() throws Exception {
+        if (minStack.size() == 0) {
+            throw new Exception("栈中空了");
+        }
+        return minStack.peek();
+    }
+}
+4.5 判断栈的push和pop序列是否一致
+已知一组数据1、2、3、4、5依次进栈，那么它的出栈方式有很多种，请判断一下给出的出栈方式是否是正确的？
+例如：
+数据：
+　　1、2、3、4、5
+出栈1：
+　　5、4、3、2、1（正确）
+出栈2：
+　　4、5、3、2、1（正确）
+出栈3：
+　　4、3、5、1、2（错误）
+package cn.list;
+import java.util.Stack;
+/*
+ * 判断栈的push和pop序列是否一致
+ *  通俗一点讲：已知一组数据1、2、3、4、5依次进栈，
+ *  那么它的出栈方式有很多种，请判断一下给出的出栈方式是否是正确的？
+ *  
+ *  例如：
+数据：
+　　1、2、3、4、5
+出栈1：
+　　5、4、3、2、1（正确）
+出栈2：
+　　4、5、3、2、1（正确）
+出栈3：
+　　4、3、5、1、2（错误）
+ * */
+
+public class StackTest {
+
+    //方法：data1数组的顺序表示入栈的顺序。现在判断data2的这种出栈顺序是否正确
+    public static boolean sequenseIsPop(int[] data1, int[] data2) {
+        Stack<Integer> stack = new Stack<Integer>(); //这里需要用到辅助栈
+
+        for (int i = 0, j = 0; i < data1.length; i++) {
+            stack.push(data1[i]);
+            while (stack.size() > 0 && stack.peek() == data2[j]) {
+                stack.pop();
+                j++;
+            }
+        }
+        return stack.size() == 0;
+    }
+
+    public static void main(String[] args) {
+
+        Stack<Integer> stack = new Stack<Integer>();
+
+        int[] data1 = {1, 2, 3, 4, 5};
+        int[] data2 = {4, 5, 3, 2, 1};
+        int[] data3 = {4, 5, 2, 3, 1};
+
+        System.out.println(sequenseIsPop(data1, data2));
+        System.out.println(sequenseIsPop(data1, data3));
+    }
+}
+说明：下面我们看此题的原理：
+•	我们以前面的序列4、5、3、2、1为例。第一个希望被pop出来的数字是4，因此4需要先push到栈里面。由于push的顺序已经由push序列确定了，也就是在把4 push进栈之前，数字1，2，3都需要push到栈里面。此时栈里的包含4个数字，分别是1，2，3，4，其中4位于栈顶。把4 pop出栈后，剩下三个数字1，2，3。接下来希望被pop的是5，由于仍然不是栈顶数字，我们接着在push序列中4以后的数字中寻找。找到数字5后再一次push进栈，这个时候5就是位于栈顶，可以被pop出来。接下来希望被pop的三个数字是3，2，1。每次操作前都位于栈顶，直接pop即可。
+•	再来看序列4、3、5、1、2。pop数字4的情况和前面一样。把4 pop出来之后，3位于栈顶，直接pop。接下来希望pop的数字是5，由于5不是栈顶数字，我们到push序列中没有被push进栈的数字中去搜索该数字，幸运的时候能够找到5，于是把5 push进入栈。此时pop5之后，栈内包含两个数字1、2，其中2位于栈顶。这个时候希望pop的数字是1，由于不是栈顶数字，我们需要到push序列中还没有被push进栈的数字中去搜索该数字。但此时push序列中所有数字都已被push进入栈，因此该序列不可能是一个pop序列。
+•	也就是说，如果我们希望pop的数字正好是栈顶数字，直接pop出栈即可；如果希望pop的数字目前不在栈顶，我们就到push序列中还没有被push到栈里的数字中去搜索这个数字，并把在它之前的所有数字都push进栈。如果所有的数字都被push进栈仍然没有找到这个数字，表明该序列不可能是一个pop序列。
+通过此原理我们可以手工进行判断。
+基础题：
+1. 若一序列进栈顺序为a1,a2,a3,a4，问存在多少种可能的出栈序列（     14）
+卡特兰数F(n)=(2n)！/(n)!/(n+1)!
+
+
+
